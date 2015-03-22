@@ -30,7 +30,7 @@ public class DuplicateFilteringDynamicPropertiesManager implements DynamicProper
 
     @Override
     public Map<String, String> getCurrentProperties() {
-        return currentProperties;
+        return delegate.getCurrentProperties();
     }
 
     private boolean changed(Map.Entry<String, String> entry) {

@@ -1,5 +1,6 @@
 package at.cleancode.dynamicproperties;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -18,9 +19,12 @@ public class DefaultDynamicPropertiesManager implements DynamicPropertiesManager
     private DynamicPropertiesPostProcessor postProcessor;
     private ValueConverter valueConverter;
 
+    private final Map<String, String> currentProperties = new HashMap<>();
+
     @Override
     public void propertiesChanged(Map<String, String> properties) {
         Assert.argumentNotNull(properties, "properties");
+        currentProperties.putAll(properties);
         DynamicPropertiesMapping mapping = postProcessor.getMapping();
         Set<AfterChangeAction> allAfterChangeActions = new HashSet<>();
         for (Map.Entry<String, String> entry : properties.entrySet()) {
@@ -39,7 +43,7 @@ public class DefaultDynamicPropertiesManager implements DynamicPropertiesManager
 
     @Override
     public Map<String, String> getCurrentProperties() {
-        return null; // this implementation has no knowledge of the current properties
+        return currentProperties;
     }
 
     @Override
