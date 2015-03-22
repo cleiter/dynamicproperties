@@ -81,10 +81,6 @@ framework by just calling the appropriate setter.
 * Spring 4
 
 
-## Todo
-
-* Use `WeakReference`s to beans to prevent memory leaks for prototype scope beans
-
 ## License
 
 See [LICENSE](LICENSE).

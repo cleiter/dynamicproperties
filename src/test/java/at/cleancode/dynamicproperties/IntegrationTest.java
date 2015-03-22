@@ -6,19 +6,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 
 public class IntegrationTest {
 
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    DemoService demoService = context.getBean(DemoService.class);
+    DynamicPropertiesManager manager = context.getBean(DynamicPropertiesManager.class);
+
     @Test
     public void integration_test() throws Exception {
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
-
-        DemoService demoService = context.getBean(DemoService.class);
-
-        DynamicPropertiesManager manager = context.getBean(DynamicPropertiesManager.class);
         Map<String, String> properties = new HashMap<>();
         properties.put("x", "${3*7}");
         properties.put("y", "foo");
@@ -38,6 +39,26 @@ public class IntegrationTest {
         assertThat(demoService.done).isEqualTo(2);
     }
 
+
+    @Test
+    public void releases_prototype_scoped_beans() throws Exception {
+        Runnable runnable = new Runnable() {
+            @Override public void run() {
+                context.getBean(InstanceCount.class);
+            }
+        };
+        runnable.run();
+        runnable.run();
+        runnable.run();
+        runnable.run();
+        runnable.run();
+
+        System.gc();
+        Thread.sleep(100);
+
+        assertThat(InstanceCount.count).isZero();
+    }
+
     @Configuration
     public static class SpringConfiguration {
 
@@ -54,6 +75,10 @@ public class IntegrationTest {
             return new DuplicateFilteringDynamicPropertiesManager(new DefaultDynamicPropertiesManager());
         }
 
+        @Bean @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+        public InstanceCount instanceCount() {
+            return new InstanceCount();
+        }
     }
 
     private static class DemoService {
@@ -83,6 +108,22 @@ public class IntegrationTest {
             this.done++;
         }
 
+    }
+
+    private static class InstanceCount {
+        static int count;
+
+        public InstanceCount() {
+            count++;
+        }
+
+        @Override
+        protected void finalize() throws Throwable {
+            count--;
+        }
+
+        @DynamicProperty("x") public void setX(String s) { }
+        @AfterDynamicPropertiesSet public void done() { }
     }
 
 
