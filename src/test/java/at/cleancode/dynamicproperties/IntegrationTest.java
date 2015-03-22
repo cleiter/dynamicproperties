@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 public class IntegrationTest {
 
     @Test
-    public void testName() throws Exception {
+    public void integration_test() throws Exception {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
 
         DemoService demoService = context.getBean(DemoService.class);
